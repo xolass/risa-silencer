@@ -1,0 +1,24 @@
+{
+  "name": "donnie-thornberry-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Funny discord bot to troll your friends.",
+  "main": "bot.js",
+  "scripts": {
+    "start": "tsx watch bot.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "aaronr5",
+  "license": "MIT",
+  "dependencies": {
+    "@discordjs/voice": "^0.17.0",
+    "discord.js": "^14.15.3",
+    "dotenv": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.1.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.16.5",
+    "typescript": "^5.5.4"
+  }
+}
