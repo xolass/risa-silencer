@@ -1,9 +1,18 @@
 import { VoiceConnection } from "@discordjs/voice";
 import { Client, Message, VoiceChannel } from "discord.js";
 import fs from "fs";
+import { helpCommand } from "./commands/help";
 import { startCommand } from "./commands/start";
 import { stopCommand } from "./commands/stop";
 import { targetCommand } from "./commands/target";
+
+export type Commands = Record<
+  string,
+  {
+    help: string;
+    execute: (message: Message) => void;
+  }
+>;
 
 interface State {
   client: Client | undefined;
@@ -12,13 +21,7 @@ interface State {
   voiceChannel: VoiceChannel | undefined;
   voiceConnection: VoiceConnection | undefined;
   isTurnedOn: boolean;
-  commands: Record<
-    string,
-    {
-      help: string;
-      execute: (message: Message) => void;
-    }
-  >;
+  commands: Commands;
 }
 
 const state: State = {
@@ -45,10 +48,7 @@ const state: State = {
     },
     help: {
       help: "List commands for donnie.",
-      execute: (message: Message) => {
-        const { helpFunction } = require("./commands/help");
-        helpFunction(state.commands, message);
-      },
+      execute: (message: Message) => helpCommand(state.commands, message),
     },
   },
 };

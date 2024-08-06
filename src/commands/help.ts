@@ -1,7 +1,8 @@
 import { Message, MessagePayload } from "discord.js";
-import { Commands, prefix } from "../commons";
+import { Commands, getState } from "../state";
 
-export default (commands: Commands, message: Message) => {
+export function helpCommand(commands: Commands, message: Message) {
+  const { prefix } = getState();
   // .setTitle("Donnie Bot Help");
   const helpMessage = Object.entries(commands)
     .map(([key, { help }]) => {
@@ -17,4 +18,4 @@ export default (commands: Commands, message: Message) => {
   });
 
   message.reply(messagePayload);
-};
+}
