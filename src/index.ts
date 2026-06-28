@@ -1,9 +1,4 @@
-import Discord, {
-  GatewayIntentBits,
-  IntentsBitField,
-  Partials,
-  VoiceChannel,
-} from "discord.js";
+import Discord, { Intents, Message, VoiceChannel } from "discord.js";
 import { config } from "dotenv";
 import { connectToVoiceChannel } from "./functions";
 import { getState, loadState, setClient, setVoiceChannel } from "./state";
@@ -11,15 +6,15 @@ import { getState, loadState, setClient, setVoiceChannel } from "./state";
 config();
 const Client = new Discord.Client({
   intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers,
-    IntentsBitField.Flags.GuildPresences,
-    IntentsBitField.Flags.GuildMembers,
-    GatewayIntentBits.GuildVoiceStates,
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.MESSAGE_CONTENT,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_PRESENCES,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_VOICE_STATES,
   ],
-  partials: [Partials.Message, Partials.Channel, Partials.GuildMember],
+  partials: ["MESSAGE", "CHANNEL", "GUILD_MEMBER"],
 });
 
 const { TOKEN } = process.env;
@@ -33,14 +28,16 @@ Client.on("ready", () => {
 
 // Message handler, did this and the commands in a hurry just to
 // make it simpler to use for non programming people.
-Client.on("messageCreate", (message) => {
+Client.on("messageCreate", async (message: Message) => {
   const { prefix, commands } = getState();
   const { content } = message;
   if (!content.startsWith(prefix)) return;
   const command = content.substring(prefix.length).split(" ")[0];
 
-  if (!commands[command])
-    return message.reply('Command not found, use "don!help" to see commands.');
+  if (!commands[command]) {
+    await message.reply('Command not found, use "don!help" to see commands.');
+    return;
+  }
 
   commands[command].execute(message);
 });
@@ -51,39 +48,41 @@ Client.on("messageCreate", (message) => {
 Client.on("voiceStateUpdate", async (oldState, newState) => {
   const { voiceConnection, target, isTurnedOn } = getState();
 
-  if (newState.id === target && isTurnedOn) {
-    if (oldState.channelId === null) {
-      if (!newState.channelId) return;
+  if (!isTurnedOn) return;
+  if (newState.id !== target) return;
 
-      const channel = <VoiceChannel>(
-        await Client.channels.fetch(newState.channelId)
-      );
+  if (oldState.channelId === null) {
+    if (!newState.channelId) return;
 
-      if (!channel) return;
+    const channel = <VoiceChannel>(
+      await Client.channels.fetch(newState.channelId)
+    );
 
-      setVoiceChannel(channel);
-      connectToVoiceChannel(channel);
-    }
-    if (
-      oldState.channelId != null &&
-      newState.channel === null &&
-      voiceConnection != null
-    ) {
-      voiceConnection.disconnect();
-    }
-    if (
-      oldState.channelId != null &&
-      newState.channel != null &&
-      newState.channelId
-    ) {
-      const channel = <VoiceChannel>(
-        await Client.channels.fetch(newState.channelId)
-      );
-      if (!channel) return;
+    if (!channel) return;
 
-      setVoiceChannel(channel);
-      connectToVoiceChannel(channel);
-    }
+    setVoiceChannel(channel);
+    connectToVoiceChannel(channel);
+  }
+
+  if (
+    oldState.channelId != null &&
+    newState.channel === null &&
+    voiceConnection != null
+  ) {
+    voiceConnection.disconnect();
+  }
+  if (
+    oldState.channelId != null &&
+    newState.channel != null &&
+    newState.channelId
+  ) {
+    const channel = <VoiceChannel>(
+      await Client.channels.fetch(newState.channelId)
+    );
+    if (!channel) return;
+
+    setVoiceChannel(channel);
+    connectToVoiceChannel(channel);
   }
 });
 
